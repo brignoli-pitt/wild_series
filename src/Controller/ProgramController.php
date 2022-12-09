@@ -10,7 +10,7 @@ use App\Repository\ProgramRepository;
 #[Route('/program', name: 'program_')]
 Class ProgramController extends AbstractController
 {
-    #[Route('/', name: 'index')]
+    #[Route('/', name: 'app_index')]
     public function index(ProgramRepository $programRepository): Response
     {
         $programs = $programRepository->findAll();
@@ -22,9 +22,19 @@ Class ProgramController extends AbstractController
     }
 
 
-    #[Route('/program/{id}', requirements: ['id'=>'\d+'], methods: ['GET'], name: 'app_program_show')]
-    public function show(int $id): Response
+    #[Route('/show/{id<^[0-9]+$>}', name: 'app_show')]
+    public function show(int $id, ProgramRepository $programRepository):Response
     {
-        return $this->render('program/show.html.twig', ['id' => $id]);
+        $program = $programRepository->findOneBy(['id' => $id]);
+        // same as $program = $programRepository->find($id);
+
+        if (!$program) {
+            throw $this->createNotFoundException(
+                'No program with id : '.$id.' found in program\'s table.'
+            );
+        }
+        return $this->render('program/show.html.twig', [
+            'program' => $program,
+        ]);
     }
 }
